@@ -1,0 +1,57 @@
+services:
+  frontend:
+    container_name: sz-web
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    image: registry.cn-shanghai.aliyuncs.com/bqdocker/sz-web:1.0
+    ports:
+      - "9800:80"
+    networks:
+      - sz_network
+
+  backend:
+    container_name: sz-api
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ADDRESS=sz-mysql
+      - REDIS_ADDRESS=sz-redis
+    image: registry.cn-shanghai.aliyuncs.com/bqdocker/sz-api:1.0
+    ports:
+      - "9991:9991"
+    command: java -jar /jar/sz-service-admin-0.6.5-SNAPSHOT.jar
+    networks:
+      - sz_network
+
+  mysql:
+    image: registry.cn-shanghai.aliyuncs.com/bqdocker/sz-mysql:1.0
+    container_name: sz-mysql
+    restart: always
+    volumes:
+      - ./data/mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: 12345678  # 根用户的密码
+      MYSQL_DATABASE: sz_admin_preview
+    networks:
+      - sz_network
+
+  redis:
+    image: registry.cn-shanghai.aliyuncs.com/bqdocker/sz-redis:1.0
+    container_name: sz-redis
+    restart: always
+    volumes:
+      - ./data/redis-data:/data
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai
+    networks:
+      - sz_network
+
+networks:
+  sz_network:
+    driver: bridge
